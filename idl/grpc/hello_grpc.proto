@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+
+option go_package = "go_hertz_template_lintang/pb";
+
+message HelloResp{
+    string message=1;
+}
+message HelloReq {
+    string messageReq = 1;
+}
+
+
+service HelloService { 
+    rpc Hello(HelloReq) returns (HelloResp);
+}

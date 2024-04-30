@@ -3,12 +3,41 @@
 package main
 
 import (
+	"log"
+	"net"
+
 	"github.com/cloudwego/hertz/pkg/app/server"
+	"github.com/hertz-contrib/pprof"
+
+	hello "lintang/go_hertz_template/kitex_gen/go_hertz_template_lintang/pb/helloservice"
+
+	"github.com/cloudwego/kitex/pkg/transmeta"
+	kitexServer "github.com/cloudwego/kitex/server"
 )
 
 func main() {
-	h := server.Default()
+	h := server.Default(
+		server.WithHostPorts("0.0.0.0:8888"),
+	)
 
+	pprof.Register(h)
 	register(h)
+
+	addr, _ := net.ResolveTCPAddr("tcp", "127.0.0.1:6000") // grpc address
+	var opts []kitexServer.Option
+	opts = append(opts, kitexServer.WithMetaHandler(transmeta.ServerHTTP2Handler))
+	opts = append(opts, kitexServer.WithServiceAddr(addr))
+	srv := hello.NewServer(new(HelloServiceImpl), opts...) //grpc server
+
+	go func() {
+		// start kitex rpc server (grpc)
+		err := srv.Run()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
+
+	// start hertz http server
 	h.Spin()
+
 }
