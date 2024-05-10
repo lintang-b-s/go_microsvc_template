@@ -1,0 +1,8 @@
+
+DROP TABLE IF EXISTS users;
+DROP TYPE IF EXISTS gender;
+DROP TABLE IF EXISTS sessions;
+
+
+
+

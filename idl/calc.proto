@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package calculation;
+import "api.proto";
+
+option go_package = "lintang/calc";
+
+
+message SumReq{
+    int64 a=1[(api.body)="a"];
+    int64 b=2[(api.body)="b"];
+    string service=3[(api.path)="path"];
+ }
+ 
+ message SumResp{
+    int64 sum=1;
+ }
+
+
+service CalculationService {
+    rpc GetCalculatedSum(SumReq) returns(SumResp) {
+        option (api.post) = "/calc";
+     } 
+}
