@@ -1,0 +1,103 @@
+{
+	"info": {
+		"_postman_id": "37dce142-70f4-4531-badc-2436ccaeace0",
+		"name": "twittur",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "30538133",
+		"_collection_link": "https://orange-comet-51695.postman.co/workspace/netflik~35c0e208-27dd-4c2a-a67f-44e4ee221c8b/collection/30538133-37dce142-70f4-4531-badc-2436ccaeace0?action=share&source=collection_link&creator=30538133"
+	},
+	"item": [
+		{
+			"name": "register",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"lintang\",\n    \"password\": \"linTang123*\",\n    \"email\": \"lintang@gmail.com\",\n    \"date_of_birth\": \"2023-06-11T15:04:05Z\",\n    \"gender\": \"MALE\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:9995/api/v1/user",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9995",
+					"path": [
+						"api",
+						"v1",
+						"user"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "login",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n      \"email\": \"lintang@gmail.com\",\n    \"password\": \"linTang123*\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:9995/api/v1/auth/login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9995",
+					"path": [
+						"api",
+						"v1",
+						"auth",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "New Request",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjUwMDM4ZGVmLWZjZDgtNDU5Yy04YTMwLTg2MGY3YzU1NzViNCIsInVzZXJuYW1lIjoibGludGFuZyIsImlzc3VlZF9hdCI6IjIwMjQtMDUtMTBUMTg6MTk6MDEuNzg2OTAzNTM2KzA3OjAwIiwiZXhwIjoiMjAyNC0wNS0xM1QwMjoxOTowMS43ODY5MDM4NzYrMDc6MDAifQ.gQyp2Qr7KO1c9vv6nOq1em-YN53THrQOb1Y2hSmtfplBHX6Giua4zy03Led4MHnupOEGQXfUbUR_7V0wvDPLgKxiFgNCdPObPKBIrngqkDI5w7lPrHkB6Cp09lp9b-eORdphehmuXuvfqRjBl31pgy2pvQFzhAGxzrgNeVIH6OY4ZN6wk00cyKJNS3xVI99NkAXpXpiKZOjEnTuZFMJdfIaS8oszqmlpa00lGKuP6Wi4kv12rxZ7sycqfTctDg47dBpeP7fBM5j92RIg1pbWrJ1avaPZCAHgm7B28lCYf-MgM2FXDrSsN8oxuG_7akGzUYDj5f35dxlIrPJuWpthsF9M9xqIQExvw0In4p-BoIWwIFEjniz2kZCKFfcCVCXsahkLJcZxBl0-8jjrP08uguMx8kE-ernUU5FIfpICsilqmqtkyo0bg9SkgOLKOMiJ7cF9u9SujxFz5BwapasPnh2xLfbW-DlWHl8Yneh5JgIEQ9tOtTGVUOzPn1Sr8hpeWDsYMqgMCzx0V85_keXo_AF7HdAKZSt7q-stPA2_wJDFmfQ_f9wTulHoRwtfS1-Fz71tltcNw6gAZoO8bUnNnlqPbKNxxsiR0V1DEDzCry3rKmpXJDYze2EFsVmUS3wtxd8nq4OAwOUk22HQA4efM5a6I7JJ4EjV-krhM0llP7k",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:9995/api/v1/user",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9995",
+					"path": [
+						"api",
+						"v1",
+						"user"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

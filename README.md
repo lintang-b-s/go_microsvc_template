@@ -1,5 +1,10 @@
 go template using bytedance cloudwego hertz framework
 
-framework simple benchmark using hey: https://docs.google.com/document/d/1YIkzEYj-psQA0QuZrEKXKbc4ISKmG_bYBzZIrNEOQA0/edit?usp=sharing
+https://www.cloudwego.io/docs/hertz/
+https://www.cloudwego.io/docs/kitex/
 
-
+```
+1.docker compose  up -d
+2. make migrate-up
+3. docker compose up -d
+```
