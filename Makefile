@@ -16,7 +16,7 @@ run:
 
 
 migrate-create:  ### create new migration
-	migrate create -ext sql -dir migrations create_chat_app_table
+	migrate create -ext sql -dir migrations create_twittur_table
 .PHONY: migrate-create
 
 migrate-up: ### migration up

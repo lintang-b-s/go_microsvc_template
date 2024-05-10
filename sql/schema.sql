@@ -16,7 +16,8 @@ CREATE TABLE users(
 );
 
 CREATE TABLE sessions (
-    id uuid PRIMARY KEY NOT NULL,
+    id uuid PRIMARY DEFAULT gen_random_uuid() PRIMARY KEY ,
+    ref_token_id VARCHAR(255) NOT NULL,
     username varchar NOT NULL,
     refresh_token varchar NOT NULL,
     expires_at timestamptz NOT NULL,
@@ -24,7 +25,6 @@ CREATE TABLE sessions (
     updated_at timestamptz NOT NULL DEFAULT (now()),
     deleted_at timestamptz
 );
-
 --  di monogodb aja ini
 -- CREATE TABLE likes(
 --     id  UUID DEFAULT gen_random_uuid() PRIMARY KEY ,

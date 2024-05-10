@@ -7,7 +7,7 @@ INSERT INTO users(
 
 -- name: InsertSession :exec
 INSERT INTO sessions(
-    id, username, refresh_token, expires_at
+     ref_token_id, username, refresh_token, expires_at
 )VALUES(
     $1, $2, $3, $4
 );

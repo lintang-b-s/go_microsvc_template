@@ -14,7 +14,7 @@ func HashPassword(password string) (string, error) {
 	// }
 
 	// return string(hashedPassword), nil
-	hash, err := argon2id.CreateHash("pa$$word", argon2id.DefaultParams)
+	hash, err := argon2id.CreateHash(password, argon2id.DefaultParams)
 	if err != nil {
 		return "", domain.WrapErrorf(err, domain.ErrInternalServerError, domain.MessageInternalServerError)
 	}

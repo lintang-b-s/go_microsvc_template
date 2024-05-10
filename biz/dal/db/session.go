@@ -25,7 +25,7 @@ func (r *SessionRepository) Insert(ctx context.Context, s domain.Session) error 
 	q := queries.New(r.db.Pool)
 
 	err := q.InsertSession(ctx, queries.InsertSessionParams{
-		ID:           googleuuid.UUID(s.ID),
+		RefTokenID:   s.ID.String(),
 		Username:     s.Username,
 		RefreshToken: s.RefreshToken,
 		ExpiresAt:    pgtype.Timestamptz{Valid: true, Time: s.ExpiresAt},

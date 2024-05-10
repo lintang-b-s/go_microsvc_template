@@ -175,14 +175,14 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (GetUserByEm
 
 const insertSession = `-- name: InsertSession :exec
 INSERT INTO sessions(
-    id, username, refresh_token, expires_at
+     ref_token_id, username, refresh_token, expires_at
 )VALUES(
     $1, $2, $3, $4
 )
 `
 
 type InsertSessionParams struct {
-	ID           uuid.UUID
+	RefTokenID   string
 	Username     string
 	RefreshToken string
 	ExpiresAt    pgtype.Timestamptz
@@ -190,7 +190,7 @@ type InsertSessionParams struct {
 
 func (q *Queries) InsertSession(ctx context.Context, arg InsertSessionParams) error {
 	_, err := q.db.Exec(ctx, insertSession,
-		arg.ID,
+		arg.RefTokenID,
 		arg.Username,
 		arg.RefreshToken,
 		arg.ExpiresAt,

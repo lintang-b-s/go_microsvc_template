@@ -56,6 +56,7 @@ func (ns NullGender) Value() (driver.Value, error) {
 
 type Session struct {
 	ID           uuid.UUID
+	RefTokenID   string
 	Username     string
 	RefreshToken string
 	ExpiresAt    pgtype.Timestamptz

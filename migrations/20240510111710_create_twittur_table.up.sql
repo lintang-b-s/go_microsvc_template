@@ -15,7 +15,8 @@ CREATE TABLE users(
 );
 
 CREATE TABLE sessions (
-    id uuid PRIMARY KEY NOT NULL,
+    id uuid DEFAULT gen_random_uuid() PRIMARY KEY ,
+    ref_token_id VARCHAR(255) NOT NULL,
     username varchar NOT NULL,
     refresh_token varchar NOT NULL,
     expires_at timestamptz NOT NULL,
