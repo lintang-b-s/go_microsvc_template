@@ -42,7 +42,7 @@ func (uc *AuthService) Login(ctx context.Context, l domain.User) (domain.Token, 
 	}
 
 	accessToken, accessPayload, err := uc.jwtTokenMaker.CreateToken(
-		user.ID,
+		string(user.ID),
 		user.Username,
 		56*time.Hour,
 	)
@@ -53,7 +53,7 @@ func (uc *AuthService) Login(ctx context.Context, l domain.User) (domain.Token, 
 	}
 
 	refreshToken, refreshPayload, err := uc.jwtTokenMaker.CreateToken(
-		user.ID,
+		string(user.ID),
 		user.Username,
 		168*time.Hour,
 	)
@@ -96,7 +96,7 @@ func (uc *AuthService) RenewAccessToken(ctx context.Context, r router.NewTokenRe
 		return domain.NewToken{}, domain.WrapErrorf(err, domain.ErrUnauthorized, domain.MessageUnauthorized)
 	}
 
-	session, err := uc.sessionRepo.Get(ctx, refreshPayload.ID.String())
+	session, err := uc.sessionRepo.Get(ctx, refreshPayload.ID)
 	if err != nil {
 		return domain.NewToken{}, domain.WrapErrorf(err, domain.ErrUnauthorized, domain.MessageUnauthorized)
 	}
@@ -113,7 +113,7 @@ func (uc *AuthService) RenewAccessToken(ctx context.Context, r router.NewTokenRe
 	}
 
 	accessToken, accessTokenPayload, err := uc.jwtTokenMaker.CreateToken(
-		refreshPayload.ID.String(),
+		refreshPayload.ID,
 		refreshPayload.Username,
 		7*time.Hour,
 	)
@@ -136,7 +136,7 @@ func (uc *AuthService) DeleteRefreshToken(ctx context.Context, d router.DeleteRe
 		return err
 	}
 
-	session, err := uc.sessionRepo.Get(ctx, refreshPayload.ID.String())
+	session, err := uc.sessionRepo.Get(ctx, refreshPayload.ID)
 	if err != nil {
 		return err
 	}
@@ -150,7 +150,7 @@ func (uc *AuthService) DeleteRefreshToken(ctx context.Context, d router.DeleteRe
 	if time.Now().After(session.ExpiresAt) {
 		return err
 	}
-	err = uc.sessionRepo.Delete(ctx, refreshPayload.ID.String())
+	err = uc.sessionRepo.Delete(ctx, refreshPayload.ID)
 	if err != nil {
 		return err
 	}

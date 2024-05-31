@@ -5,7 +5,7 @@ import (
 	"lintang/go_hertz_template/config"
 )
 
-func InitPg(cfg *config.Config) *db.Postgres {
-	pg := db.NewPostgres(cfg)
+func InitMysql(cfg *config.Config) *db.Mysql {
+	pg := db.NewMYSQL(cfg)
 	return pg
 }

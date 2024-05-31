@@ -1,13 +1,14 @@
 version: "2"
 sql:
-  - engine: "postgresql"
+  - engine: "mysql"
     queries: "queries.sql"
     schema: "schema.sql"
     gen:
       go:
         package: "queries"
         out: "./../biz/dal/db/queries"
-        sql_package: "pgx/v5"
+        sql_package: "database/sql"
+        sql_driver: "github.com/go-sql-driver/mysql"
         overrides:
           - db_type: "uuid"
             go_type: "github.com/google/uuid.UUID"

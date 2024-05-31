@@ -7,15 +7,17 @@ import (
 	"lintang/go_hertz_template/biz/mw"
 	"lintang/go_hertz_template/biz/util/jwt"
 	"net/http"
-	"time"
+	"strconv"
 
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/app/server"
+	"github.com/cloudwego/hertz/pkg/protocol/consts"
+	"go.uber.org/zap"
 )
 
 type UserService interface {
 	Create(ctx context.Context, d domain.User) error
-	Get(ctx context.Context, userID string) (domain.User, error)
+	Get(ctx context.Context, userID int32) (domain.User, error)
 }
 
 type UserHandler struct {
@@ -49,8 +51,9 @@ type createUserReq struct {
 	Username string        `json:"username,required" vd:"len($) < 25 && regexp('^[\\w\\-\\.]*$'); msg:'nama harus alpahnumeric atau boleh juga mendandung simbol -,.'"`
 	Password string        `json:"password,required" vd:" password($); msg:'password harus terdiri dari minimal 1 uppercase, 1 symbol , dan satu digit angka, dan panjangnnya antara 8-16'"`
 	Email    string        `json:"email,required" vd:"email($)"`
-	Dob      time.Time     `json:"date_of_birth,required" `
-	Gender   domain.Gender `json:"gender,required" vd:"in($, 'MALE', 'FEMALE'); msg:'jenis kelamin harus MALE atau FEMALE'"`
+	Gender   domain.Gender `json:"gender,required" vd:"in($, 'Male', 'Female'); msg:'jenis kelamin harus MALE atau FEMALE'"`
+	Age      uint64        `json:"age,required" vd:" $ >= 10; msg:'umur harus lebih dari 10'"`
+	Address  string        `json:"address,required"`
 }
 
 type createUserRes struct {
@@ -65,11 +68,11 @@ func (h *UserHandler) Create(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 	err = h.svc.Create(ctx, domain.User{
-		Username:    req.Username,
-		Email:       req.Email,
-		Dob:         req.Dob,
-		Gender:      req.Gender,
-		UpdatedTime: time.Now(),
+		Username: req.Username,
+		Email:    req.Email,
+		Gender:   req.Gender,
+		Age:      req.Age,
+		Address:  req.Address,
 	})
 	if err != nil {
 		c.JSON(getStatusCode(err), ResponseError{Message: err.Error()})
@@ -85,8 +88,12 @@ type userRes struct {
 func (h *UserHandler) Get(ctx context.Context, c *app.RequestContext) {
 	authPayload := c.MustGet(mw.AuthorizationPayloadKey).(*jwt.Payload)
 	userID := authPayload.ID
-
-	user, err := h.svc.Get(ctx, userID.String())
+	userIDInt, err := strconv.Atoi(userID)
+	if err != nil {
+		zap.L().Error("strconv.Atoi (Get) (UserHandler)", zap.Error(err))
+		c.JSON(consts.StatusInternalServerError, ResponseError{Message: err.Error()})
+	}
+	user, err := h.svc.Get(ctx, int32(userIDInt))
 	if err != nil {
 
 		c.JSON(getStatusCode(err), ResponseError{Message: err.Error()})

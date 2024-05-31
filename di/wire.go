@@ -19,7 +19,7 @@ var ProviderSet wire.ProviderSet = wire.NewSet(
 	wire.Bind(new(service.UserRepository), new(*db.UserRepository)),
 )
 
-func InitUserService(pg *db.Postgres, cfg *config.Config) *service.UserService {
+func InitUserService(pg *db.Mysql, cfg *config.Config) *service.UserService {
 	wire.Build(
 		ProviderSet,
 	)
@@ -37,7 +37,7 @@ var ProviderSetAuth wire.ProviderSet = wire.NewSet(
 	wire.Bind(new(jwt.JwtTokenMaker), new(*jwt.JWTMaker)),
 )
 
-func InitAuthService(pg *db.Postgres, cfg *config.Config) *service.AuthService {
+func InitAuthService(pg *db.Mysql, cfg *config.Config) *service.AuthService {
 	wire.Build(
 		ProviderSetAuth,
 	)

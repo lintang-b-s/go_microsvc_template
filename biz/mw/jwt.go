@@ -9,7 +9,6 @@ import (
 	"github.com/cloudwego/hertz/pkg/app"
 	jalvaJWt "github.com/dgrijalva/jwt-go"
 	gojwt "github.com/golang-jwt/jwt/v4"
-	"github.com/google/uuid"
 
 	utilJWT "lintang/go_hertz_template/biz/util/jwt"
 
@@ -54,7 +53,7 @@ func GetJwtMiddleware() *jwt.HertzJWTMiddleware {
 			claims := jwt.ExtractClaims(ctx, c)
 			fmt.Println(claims)
 			return &utilJWT.Payload{
-				ID: claims[IdentityKey].(uuid.UUID),
+				ID: claims[IdentityKey].(string),
 			}
 		},
 		Authorizator: func(data interface{}, ctx context.Context, c *app.RequestContext) bool {

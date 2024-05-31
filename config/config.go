@@ -13,7 +13,8 @@ type (
 	Config struct {
 		App
 		HTTP
-		Postgres
+		// Postgres
+		Mysql
 		LogConfig
 		GRPC
 		// Auth
@@ -32,14 +33,20 @@ type (
 		Port string `env-required:"true" yaml:"port" env:"HTTP_PORT"`
 	}
 
-
-	Postgres struct {
-		Username string `env-required:"true" yaml:"username"  env:"USERNAME_POSTGRES"`
-		PGURL    string `json:"pg_url" yaml:"pg_url" env:"PG_URL"`
-		Password string `env-required:"true" yaml:"password" env:"PASSWORD_POSTGRES"`
-		PGScheme string `env-required:"true" json:"pg_scheme" yaml:"pg_scheme" env:"PG_SCHEME"`
-		PGDB     string `env-required:"true" json:"pg_db" yaml:"pg_db" env:"PG_DB"`
+	Mysql struct {
+		Username string `env:"MYSQL_USERNAME"`
+		Password string `env:"MYSQL_PASSWORD"`
+		Host string `env:"MYSQL_HOST"`
+		Database string `env:"MYSQL_DB"`
 	}
+
+	// Postgres struct {
+	// 	Username string `env-required:"true" yaml:"username"  env:"USERNAME_POSTGRES"`
+	// 	PGURL    string `json:"pg_url" yaml:"pg_url" env:"PG_URL"`
+	// 	Password string `env-required:"true" yaml:"password" env:"PASSWORD_POSTGRES"`
+	// 	PGScheme string `env-required:"true" json:"pg_scheme" yaml:"pg_scheme" env:"PG_SCHEME"`
+	// 	PGDB     string `env-required:"true" json:"pg_db" yaml:"pg_db" env:"PG_DB"`
+	// }
 
 	LogConfig struct {
 		Level string `json:"level" yaml:"level" env:"LOG_LEVEL"`

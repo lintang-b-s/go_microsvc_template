@@ -65,12 +65,12 @@ func (h *AuthHandler) login(ctx context.Context, c *app.RequestContext) {
 		RefreshToken:          res.RefreshToken,
 		RefreshTokenExpiresAt: res.RefreshTokenExpiresAt,
 		User: domain.User{
-			ID:          res.User.ID,
-			Username:    res.User.Username,
-			Email:       res.User.Email,
-			Dob:         res.User.Dob,
-			Gender:      res.User.Gender,
-			CreatedTime: res.User.CreatedTime,
+			ID:       res.User.ID,
+			Username: res.User.Username,
+			Email:    res.User.Email,
+			Gender:   res.User.Gender,
+			Age:      res.User.Age,
+			Address:  res.User.Address,
 		},
 	})
 }

@@ -5,73 +5,468 @@
 package queries
 
 import (
+	"database/sql"
 	"database/sql/driver"
 	"fmt"
-
-	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgtype"
+	"time"
 )
 
-type Gender string
+type CarAdvertisementsBahanBakar string
 
 const (
-	GenderMale   Gender = "Male"
-	GenderFemale Gender = "Female"
+	CarAdvertisementsBahanBakarBensin   CarAdvertisementsBahanBakar = "Bensin"
+	CarAdvertisementsBahanBakarHybrid   CarAdvertisementsBahanBakar = "Hybrid"
+	CarAdvertisementsBahanBakarElectric CarAdvertisementsBahanBakar = "Electric"
 )
 
-func (e *Gender) Scan(src interface{}) error {
+func (e *CarAdvertisementsBahanBakar) Scan(src interface{}) error {
 	switch s := src.(type) {
 	case []byte:
-		*e = Gender(s)
+		*e = CarAdvertisementsBahanBakar(s)
 	case string:
-		*e = Gender(s)
+		*e = CarAdvertisementsBahanBakar(s)
 	default:
-		return fmt.Errorf("unsupported scan type for Gender: %T", src)
+		return fmt.Errorf("unsupported scan type for CarAdvertisementsBahanBakar: %T", src)
 	}
 	return nil
 }
 
-type NullGender struct {
-	Gender Gender
-	Valid  bool // Valid is true if Gender is not NULL
+type NullCarAdvertisementsBahanBakar struct {
+	CarAdvertisementsBahanBakar CarAdvertisementsBahanBakar
+	Valid                       bool // Valid is true if CarAdvertisementsBahanBakar is not NULL
 }
 
 // Scan implements the Scanner interface.
-func (ns *NullGender) Scan(value interface{}) error {
+func (ns *NullCarAdvertisementsBahanBakar) Scan(value interface{}) error {
 	if value == nil {
-		ns.Gender, ns.Valid = "", false
+		ns.CarAdvertisementsBahanBakar, ns.Valid = "", false
 		return nil
 	}
 	ns.Valid = true
-	return ns.Gender.Scan(value)
+	return ns.CarAdvertisementsBahanBakar.Scan(value)
 }
 
 // Value implements the driver Valuer interface.
-func (ns NullGender) Value() (driver.Value, error) {
+func (ns NullCarAdvertisementsBahanBakar) Value() (driver.Value, error) {
 	if !ns.Valid {
 		return nil, nil
 	}
-	return string(ns.Gender), nil
+	return string(ns.CarAdvertisementsBahanBakar), nil
+}
+
+type CarAdvertisementsKapasitasMesin string
+
+const (
+	CarAdvertisementsKapasitasMesin1000cc     CarAdvertisementsKapasitasMesin = "<1000 cc"
+	CarAdvertisementsKapasitasMesin10001500cc CarAdvertisementsKapasitasMesin = ">1000 - 1500 cc"
+	CarAdvertisementsKapasitasMesin15002000cc CarAdvertisementsKapasitasMesin = ">1500 - 2000 cc"
+	CarAdvertisementsKapasitasMesin20003000cc CarAdvertisementsKapasitasMesin = ">2000 - 3000 cc"
+)
+
+func (e *CarAdvertisementsKapasitasMesin) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = CarAdvertisementsKapasitasMesin(s)
+	case string:
+		*e = CarAdvertisementsKapasitasMesin(s)
+	default:
+		return fmt.Errorf("unsupported scan type for CarAdvertisementsKapasitasMesin: %T", src)
+	}
+	return nil
+}
+
+type NullCarAdvertisementsKapasitasMesin struct {
+	CarAdvertisementsKapasitasMesin CarAdvertisementsKapasitasMesin
+	Valid                           bool // Valid is true if CarAdvertisementsKapasitasMesin is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullCarAdvertisementsKapasitasMesin) Scan(value interface{}) error {
+	if value == nil {
+		ns.CarAdvertisementsKapasitasMesin, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.CarAdvertisementsKapasitasMesin.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullCarAdvertisementsKapasitasMesin) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.CarAdvertisementsKapasitasMesin), nil
+}
+
+type CarAdvertisementsStatus string
+
+const (
+	CarAdvertisementsStatusNew    CarAdvertisementsStatus = "New"
+	CarAdvertisementsStatusSecond CarAdvertisementsStatus = "Second"
+)
+
+func (e *CarAdvertisementsStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = CarAdvertisementsStatus(s)
+	case string:
+		*e = CarAdvertisementsStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for CarAdvertisementsStatus: %T", src)
+	}
+	return nil
+}
+
+type NullCarAdvertisementsStatus struct {
+	CarAdvertisementsStatus CarAdvertisementsStatus
+	Valid                   bool // Valid is true if CarAdvertisementsStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullCarAdvertisementsStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.CarAdvertisementsStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.CarAdvertisementsStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullCarAdvertisementsStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.CarAdvertisementsStatus), nil
+}
+
+type CarAdvertisementsTransType string
+
+const (
+	CarAdvertisementsTransTypeAutomatic CarAdvertisementsTransType = "Automatic"
+	CarAdvertisementsTransTypeManual    CarAdvertisementsTransType = "Manual"
+)
+
+func (e *CarAdvertisementsTransType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = CarAdvertisementsTransType(s)
+	case string:
+		*e = CarAdvertisementsTransType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for CarAdvertisementsTransType: %T", src)
+	}
+	return nil
+}
+
+type NullCarAdvertisementsTransType struct {
+	CarAdvertisementsTransType CarAdvertisementsTransType
+	Valid                      bool // Valid is true if CarAdvertisementsTransType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullCarAdvertisementsTransType) Scan(value interface{}) error {
+	if value == nil {
+		ns.CarAdvertisementsTransType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.CarAdvertisementsTransType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullCarAdvertisementsTransType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.CarAdvertisementsTransType), nil
+}
+
+type CarsCarType string
+
+const (
+	CarsCarTypeMPV         CarsCarType = "MPV"
+	CarsCarTypeSUV         CarsCarType = "SUV"
+	CarsCarTypeHatchback   CarsCarType = "Hatchback"
+	CarsCarTypeSedan       CarsCarType = "Sedan"
+	CarsCarTypeCompact     CarsCarType = "Compact"
+	CarsCarTypeVan         CarsCarType = "Van"
+	CarsCarTypeMinibus     CarsCarType = "Minibus"
+	CarsCarTypePickUp      CarsCarType = "Pick-Up"
+	CarsCarTypeTruk        CarsCarType = "Truk"
+	CarsCarTypeDoubleCabin CarsCarType = "Double Cabin"
+	CarsCarTypeWagon       CarsCarType = "Wagon"
+	CarsCarTypeCoupe       CarsCarType = "Coupe"
+	CarsCarTypeJeep        CarsCarType = "Jeep"
+	CarsCarTypeConvertible CarsCarType = "Convertible"
+	CarsCarTypeOffroad     CarsCarType = "Offroad"
+	CarsCarTypeSports      CarsCarType = "Sports"
+	CarsCarTypeClassic     CarsCarType = "Classic"
+	CarsCarTypeBus         CarsCarType = "Bus"
+)
+
+func (e *CarsCarType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = CarsCarType(s)
+	case string:
+		*e = CarsCarType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for CarsCarType: %T", src)
+	}
+	return nil
+}
+
+type NullCarsCarType struct {
+	CarsCarType CarsCarType
+	Valid       bool // Valid is true if CarsCarType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullCarsCarType) Scan(value interface{}) error {
+	if value == nil {
+		ns.CarsCarType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.CarsCarType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullCarsCarType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.CarsCarType), nil
+}
+
+type PaymentDetailsPaymentMethod string
+
+const (
+	PaymentDetailsPaymentMethodPaypal     PaymentDetailsPaymentMethod = "Paypal"
+	PaymentDetailsPaymentMethodCreditCard PaymentDetailsPaymentMethod = "Credit Card"
+	PaymentDetailsPaymentMethodCash       PaymentDetailsPaymentMethod = "Cash"
+	PaymentDetailsPaymentMethodLoan       PaymentDetailsPaymentMethod = "Loan"
+	PaymentDetailsPaymentMethodDebitCard  PaymentDetailsPaymentMethod = "Debit Card"
+)
+
+func (e *PaymentDetailsPaymentMethod) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = PaymentDetailsPaymentMethod(s)
+	case string:
+		*e = PaymentDetailsPaymentMethod(s)
+	default:
+		return fmt.Errorf("unsupported scan type for PaymentDetailsPaymentMethod: %T", src)
+	}
+	return nil
+}
+
+type NullPaymentDetailsPaymentMethod struct {
+	PaymentDetailsPaymentMethod PaymentDetailsPaymentMethod
+	Valid                       bool // Valid is true if PaymentDetailsPaymentMethod is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullPaymentDetailsPaymentMethod) Scan(value interface{}) error {
+	if value == nil {
+		ns.PaymentDetailsPaymentMethod, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.PaymentDetailsPaymentMethod.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullPaymentDetailsPaymentMethod) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.PaymentDetailsPaymentMethod), nil
+}
+
+type PaymentDetailsStatus string
+
+const (
+	PaymentDetailsStatusPaid     PaymentDetailsStatus = "Paid"
+	PaymentDetailsStatusPending  PaymentDetailsStatus = "Pending"
+	PaymentDetailsStatusCanceled PaymentDetailsStatus = "Canceled"
+	PaymentDetailsStatusExpired  PaymentDetailsStatus = "Expired"
+)
+
+func (e *PaymentDetailsStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = PaymentDetailsStatus(s)
+	case string:
+		*e = PaymentDetailsStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for PaymentDetailsStatus: %T", src)
+	}
+	return nil
+}
+
+type NullPaymentDetailsStatus struct {
+	PaymentDetailsStatus PaymentDetailsStatus
+	Valid                bool // Valid is true if PaymentDetailsStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullPaymentDetailsStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.PaymentDetailsStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.PaymentDetailsStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullPaymentDetailsStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.PaymentDetailsStatus), nil
+}
+
+type UsersGender string
+
+const (
+	UsersGenderMale   UsersGender = "Male"
+	UsersGenderFemale UsersGender = "Female"
+)
+
+func (e *UsersGender) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = UsersGender(s)
+	case string:
+		*e = UsersGender(s)
+	default:
+		return fmt.Errorf("unsupported scan type for UsersGender: %T", src)
+	}
+	return nil
+}
+
+type NullUsersGender struct {
+	UsersGender UsersGender
+	Valid       bool // Valid is true if UsersGender is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullUsersGender) Scan(value interface{}) error {
+	if value == nil {
+		ns.UsersGender, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.UsersGender.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullUsersGender) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.UsersGender), nil
+}
+
+type Car struct {
+	ID      int32
+	Brand   string
+	Model   string
+	CarType CarsCarType
+}
+
+type CarAdvertisement struct {
+	ID             int32
+	CarID          int32
+	DealerID       int32
+	Title          string
+	Description    string
+	IsActive       bool
+	PostingDate    time.Time
+	YearProduction int32
+	Color          string
+	Mileage        int32
+	Price          int32
+	Status         NullCarAdvertisementsStatus
+	Location       string
+	BahanBakar     CarAdvertisementsBahanBakar
+	TransType      CarAdvertisementsTransType
+	KapasitasMesin CarAdvertisementsKapasitasMesin
+	Stok           int32
+	Thumbnailimage sql.NullString
+}
+
+type Dealer struct {
+	ID         int32
+	DealerName string
+	NoTelp     string
+	Email      string
+	Location   string
+	Password   string
+}
+
+type Message struct {
+	ID        int32
+	UserID    int32
+	DealerID  int32
+	Message   string
+	CreatedAt time.Time
+}
+
+type Order struct {
+	ID                  int32
+	UserID              int32
+	PaymentID           int32
+	CreatedAt           time.Time
+	ModifiedAt          time.Time
+	DealerID            sql.NullInt32
+	Price               sql.NullInt32
+	NamaPembeli         sql.NullString
+	NomorTeleponPembeli sql.NullString
+	Emailpembeli        sql.NullString
+	AlamatPembeli       sql.NullString
+}
+
+type OrderItem struct {
+	ID              int32
+	OrderID         int32
+	AdvertisementID int32
+	Quantity        int32
+	CreatedAt       time.Time
+	ModifiedAt      time.Time
+	Price           sql.NullInt32
+}
+
+type PaymentDetail struct {
+	ID            int32
+	Amount        int32
+	PaymentMethod NullPaymentDetailsPaymentMethod
+	Status        PaymentDetailsStatus
+	Provider      string
+	CreatedAt     time.Time
+	ModifiedAt    time.Time
 }
 
 type Session struct {
-	ID           uuid.UUID
+	ID           string
 	RefTokenID   string
 	Username     string
 	RefreshToken string
-	ExpiresAt    pgtype.Timestamptz
-	CreatedAt    pgtype.Timestamptz
-	UpdatedAt    pgtype.Timestamptz
-	DeletedAt    pgtype.Timestamptz
+	ExpiresAt    time.Time
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	DeletedAt    sql.NullTime
 }
 
 type User struct {
-	ID          uuid.UUID
-	Username    string
-	Email       string
-	Dob         pgtype.Date
-	Gender      Gender
-	Password    string
-	CreatedTime pgtype.Timestamptz
-	UpdatedTime pgtype.Timestamptz
+	ID       int32
+	Email    string
+	UserName string
+	Gender   UsersGender
+	Age      int32
+	Address  string
+	Password string
 }

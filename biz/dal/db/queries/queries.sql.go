@@ -7,37 +7,210 @@ package queries
 
 import (
 	"context"
-
-	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgtype"
+	"database/sql"
+	"time"
 )
 
 const deleteSession = `-- name: DeleteSession :exec
 DELETE FROM sessions
-WHERE id=$1
+WHERE id=?
 `
 
-func (q *Queries) DeleteSession(ctx context.Context, id uuid.UUID) error {
-	_, err := q.db.Exec(ctx, deleteSession, id)
+func (q *Queries) DeleteSession(ctx context.Context, id string) error {
+	_, err := q.db.ExecContext(ctx, deleteSession, id)
 	return err
+}
+
+const filterCar = `-- name: FilterCar :many
+
+SELECT car_advertisements.id,cars.brand, 
+    		cars.model,
+           car_advertisements.year_production, 
+           car_advertisements.price, 
+           car_advertisements.mileage,
+           car_advertisements.location, 
+           car_advertisements.bahan_bakar, 
+           car_advertisements.trans_type
+    FROM cars
+    JOIN car_advertisements ON cars.id = car_advertisements.car_id
+    WHERE (? = 'Semua' OR cars.brand = ?)
+    AND (car_advertisements.color = ? OR ? = 'Semua')
+    AND (car_advertisements.location = ? OR ? = 'Semua')
+    AND (car_advertisements.bahan_bakar = ? OR ? = 'Semua')
+    AND (car_advertisements.trans_type = ? OR ? = 'Semua')
+    AND car_advertisements.year_production BETWEEN ? AND ?
+    AND car_advertisements.price BETWEEN ? AND ?
+    AND car_advertisements.mileage BETWEEN ? AND ?
+`
+
+type FilterCarParams struct {
+	Column1            interface{}
+	Brand              string
+	Color              string
+	Column4            interface{}
+	Location           string
+	Column6            interface{}
+	BahanBakar         CarAdvertisementsBahanBakar
+	Column8            interface{}
+	TransType          CarAdvertisementsTransType
+	Column10           interface{}
+	FromYearProduction int32
+	ToYearProduction   int32
+	FromPrice          int32
+	ToPrice            int32
+	FromMileage        int32
+	ToMileage          int32
+}
+
+type FilterCarRow struct {
+	ID             int32
+	Brand          string
+	Model          string
+	YearProduction int32
+	Price          int32
+	Mileage        int32
+	Location       string
+	BahanBakar     CarAdvertisementsBahanBakar
+	TransType      CarAdvertisementsTransType
+}
+
+// filter car page section ---
+func (q *Queries) FilterCar(ctx context.Context, arg FilterCarParams) ([]FilterCarRow, error) {
+	rows, err := q.db.QueryContext(ctx, filterCar,
+		arg.Column1,
+		arg.Brand,
+		arg.Color,
+		arg.Column4,
+		arg.Location,
+		arg.Column6,
+		arg.BahanBakar,
+		arg.Column8,
+		arg.TransType,
+		arg.Column10,
+		arg.FromYearProduction,
+		arg.ToYearProduction,
+		arg.FromPrice,
+		arg.ToPrice,
+		arg.FromMileage,
+		arg.ToMileage,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FilterCarRow
+	for rows.Next() {
+		var i FilterCarRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Brand,
+			&i.Model,
+			&i.YearProduction,
+			&i.Price,
+			&i.Mileage,
+			&i.Location,
+			&i.BahanBakar,
+			&i.TransType,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getActiveAds = `-- name: GetActiveAds :many
+
+SELECT title FROM car_advertisements WHERE is_active = 1
+`
+
+// compare car page section ---
+func (q *Queries) GetActiveAds(ctx context.Context) ([]string, error) {
+	rows, err := q.db.QueryContext(ctx, getActiveAds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []string
+	for rows.Next() {
+		var title string
+		if err := rows.Scan(&title); err != nil {
+			return nil, err
+		}
+		items = append(items, title)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getAdsByTitle = `-- name: GetAdsByTitle :one
+SELECT id, car_id, dealer_id, title, description, is_active, posting_date, year_production, color, mileage, price, status, location, bahan_bakar, trans_type, kapasitas_mesin, stok, thumbnailimage FROM car_advertisements WHERE title=?
+`
+
+func (q *Queries) GetAdsByTitle(ctx context.Context, title string) (CarAdvertisement, error) {
+	row := q.db.QueryRowContext(ctx, getAdsByTitle, title)
+	var i CarAdvertisement
+	err := row.Scan(
+		&i.ID,
+		&i.CarID,
+		&i.DealerID,
+		&i.Title,
+		&i.Description,
+		&i.IsActive,
+		&i.PostingDate,
+		&i.YearProduction,
+		&i.Color,
+		&i.Mileage,
+		&i.Price,
+		&i.Status,
+		&i.Location,
+		&i.BahanBakar,
+		&i.TransType,
+		&i.KapasitasMesin,
+		&i.Stok,
+		&i.Thumbnailimage,
+	)
+	return i, err
+}
+
+const getInsertedPaymentID = `-- name: GetInsertedPaymentID :one
+SELECT LAST_INSERT_ID()
+`
+
+func (q *Queries) GetInsertedPaymentID(ctx context.Context) (int64, error) {
+	row := q.db.QueryRowContext(ctx, getInsertedPaymentID)
+	var last_insert_id int64
+	err := row.Scan(&last_insert_id)
+	return last_insert_id, err
 }
 
 const getSession = `-- name: GetSession :one
 SELECT id, username, refresh_token, expires_at, created_at
 FROM sessions
-WHERE id=$1
+WHERE id=?
 `
 
 type GetSessionRow struct {
-	ID           uuid.UUID
+	ID           string
 	Username     string
 	RefreshToken string
-	ExpiresAt    pgtype.Timestamptz
-	CreatedAt    pgtype.Timestamptz
+	ExpiresAt    time.Time
+	CreatedAt    time.Time
 }
 
-func (q *Queries) GetSession(ctx context.Context, id uuid.UUID) (GetSessionRow, error) {
-	row := q.db.QueryRow(ctx, getSession, id)
+func (q *Queries) GetSession(ctx context.Context, id string) (GetSessionRow, error) {
+	row := q.db.QueryRowContext(ctx, getSession, id)
 	var i GetSessionRow
 	err := row.Scan(
 		&i.ID,
@@ -50,134 +223,214 @@ func (q *Queries) GetSession(ctx context.Context, id uuid.UUID) (GetSessionRow, 
 }
 
 const getUser = `-- name: GetUser :one
-
-
-
-
-
-
-
-
-SELECT id, username, email, dob, gender, created_time, updated_time 
+SELECT id, user_name, email,  gender, age, address
 FROM users
-WHERE id=$1
+WHERE id=?
 `
 
 type GetUserRow struct {
-	ID          uuid.UUID
-	Username    string
-	Email       string
-	Dob         pgtype.Date
-	Gender      Gender
-	CreatedTime pgtype.Timestamptz
-	UpdatedTime pgtype.Timestamptz
+	ID       int32
+	UserName string
+	Email    string
+	Gender   UsersGender
+	Age      int32
+	Address  string
 }
 
-// -- name: InsertLikes :exec
-// INSERT INTO likes(
-//
-//	id, user_id, tweets_id
-//
-// ) VALUES(
-//
-//	$1, $2, $3
-//
-// );
-// -- name: DeleteLikes :exec
-// DELETE FROM likes
-// WHERE user_id=$1 AND tweets_id=$2;
-// -- name: InsertTweets :exec
-// INSERT INTO tweets(
-//
-//	id, user_id, hashtag, content
-//
-// ) VALUES(
-//
-//	$1, $2, $3, $4
-//
-// );
-// -- name: UpdateTweets :exec
-// UPDATE tweets
-// SET
-//
-//	hashtag=$2,
-//	content=$3,
-//	updated_time=$4
-//
-// WHERE id=$1;
-// -- name: InsertVideos :exec
-// INSERT INTO videos (
-//
-//	id, name, url, length, size
-//
-// ) VALUES (
-//
-//	$1, $2, $3, $4, $5
-//
-// );
-// -- name: InsertImages :exec
-// INSERT INTO images(
-//
-//	id, name, url, size
-//
-// ) VALUES(
-//
-//	$1, $2, $3, $4
-//
-// );
-func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (GetUserRow, error) {
-	row := q.db.QueryRow(ctx, getUser, id)
+func (q *Queries) GetUser(ctx context.Context, id int32) (GetUserRow, error) {
+	row := q.db.QueryRowContext(ctx, getUser, id)
 	var i GetUserRow
 	err := row.Scan(
 		&i.ID,
-		&i.Username,
+		&i.UserName,
 		&i.Email,
-		&i.Dob,
 		&i.Gender,
-		&i.CreatedTime,
-		&i.UpdatedTime,
+		&i.Age,
+		&i.Address,
 	)
 	return i, err
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, username, email, password, dob, gender, created_time, updated_time 
+SELECT id, user_name, email, password,  gender, age, address
 FROM users
-WHERE email=$1
+WHERE email=?
 `
 
 type GetUserByEmailRow struct {
-	ID          uuid.UUID
-	Username    string
-	Email       string
-	Password    string
-	Dob         pgtype.Date
-	Gender      Gender
-	CreatedTime pgtype.Timestamptz
-	UpdatedTime pgtype.Timestamptz
+	ID       int32
+	UserName string
+	Email    string
+	Password string
+	Gender   UsersGender
+	Age      int32
+	Address  string
 }
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (GetUserByEmailRow, error) {
-	row := q.db.QueryRow(ctx, getUserByEmail, email)
+	row := q.db.QueryRowContext(ctx, getUserByEmail, email)
 	var i GetUserByEmailRow
 	err := row.Scan(
 		&i.ID,
-		&i.Username,
+		&i.UserName,
 		&i.Email,
 		&i.Password,
-		&i.Dob,
 		&i.Gender,
-		&i.CreatedTime,
-		&i.UpdatedTime,
+		&i.Age,
+		&i.Address,
 	)
 	return i, err
 }
 
+const homePage = `-- name: HomePage :many
+SELECT ad.id, ad.car_id, ad.dealer_id, ad.title, ad.description, ad.is_active, ad.posting_date, ad.year_production, ad.color, ad.mileage, ad.price, ad.status, ad.location, ad.bahan_bakar, ad.trans_type, ad.kapasitas_mesin, ad.stok, c.brand, c.model, c.car_type, ad.thumbnailImage   FROM car_advertisements  ad
+    INNER JOIN cars c ON c.id=ad.car_id
+`
+
+type HomePageRow struct {
+	ID             int32
+	CarID          int32
+	DealerID       int32
+	Title          string
+	Description    string
+	IsActive       bool
+	PostingDate    time.Time
+	YearProduction int32
+	Color          string
+	Mileage        int32
+	Price          int32
+	Status         NullCarAdvertisementsStatus
+	Location       string
+	BahanBakar     CarAdvertisementsBahanBakar
+	TransType      CarAdvertisementsTransType
+	KapasitasMesin CarAdvertisementsKapasitasMesin
+	Stok           int32
+	Brand          string
+	Model          string
+	CarType        CarsCarType
+	Thumbnailimage sql.NullString
+}
+
+func (q *Queries) HomePage(ctx context.Context) ([]HomePageRow, error) {
+	rows, err := q.db.QueryContext(ctx, homePage)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []HomePageRow
+	for rows.Next() {
+		var i HomePageRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.CarID,
+			&i.DealerID,
+			&i.Title,
+			&i.Description,
+			&i.IsActive,
+			&i.PostingDate,
+			&i.YearProduction,
+			&i.Color,
+			&i.Mileage,
+			&i.Price,
+			&i.Status,
+			&i.Location,
+			&i.BahanBakar,
+			&i.TransType,
+			&i.KapasitasMesin,
+			&i.Stok,
+			&i.Brand,
+			&i.Model,
+			&i.CarType,
+			&i.Thumbnailimage,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const insertOrder = `-- name: InsertOrder :exec
+INSERT INTO orders(user_id, payment_id, price, alamat_pembeli, nomor_telepon_pembeli, emailPembeli, nama_pembeli, dealer_id)
+    VALUES (?, ?, ?,?, ?,  ?, ?, ?)
+`
+
+type InsertOrderParams struct {
+	UserID              int32
+	PaymentID           int32
+	Price               sql.NullInt32
+	AlamatPembeli       sql.NullString
+	NomorTeleponPembeli sql.NullString
+	Emailpembeli        sql.NullString
+	NamaPembeli         sql.NullString
+	DealerID            sql.NullInt32
+}
+
+func (q *Queries) InsertOrder(ctx context.Context, arg InsertOrderParams) error {
+	_, err := q.db.ExecContext(ctx, insertOrder,
+		arg.UserID,
+		arg.PaymentID,
+		arg.Price,
+		arg.AlamatPembeli,
+		arg.NomorTeleponPembeli,
+		arg.Emailpembeli,
+		arg.NamaPembeli,
+		arg.DealerID,
+	)
+	return err
+}
+
+const insertOrderItems = `-- name: InsertOrderItems :exec
+INSERT INTO order_items(order_id, advertisement_id, quantity)
+    VALUES (?, ?, ?)
+`
+
+type InsertOrderItemsParams struct {
+	OrderID         int32
+	AdvertisementID int32
+	Quantity        int32
+}
+
+func (q *Queries) InsertOrderItems(ctx context.Context, arg InsertOrderItemsParams) error {
+	_, err := q.db.ExecContext(ctx, insertOrderItems, arg.OrderID, arg.AdvertisementID, arg.Quantity)
+	return err
+}
+
+const insertPaymentDetails = `-- name: InsertPaymentDetails :exec
+ INSERT INTO payment_details(amount, payment_method, status, provider)
+   VALUES (?, ?, ?, ?)
+`
+
+type InsertPaymentDetailsParams struct {
+	Amount        int32
+	PaymentMethod NullPaymentDetailsPaymentMethod
+	Status        PaymentDetailsStatus
+	Provider      string
+}
+
+func (q *Queries) InsertPaymentDetails(ctx context.Context, arg InsertPaymentDetailsParams) error {
+	_, err := q.db.ExecContext(ctx, insertPaymentDetails,
+		arg.Amount,
+		arg.PaymentMethod,
+		arg.Status,
+		arg.Provider,
+	)
+	return err
+}
+
 const insertSession = `-- name: InsertSession :exec
+    --  ?, ?, ?, ?, ?, ?
+
 INSERT INTO sessions(
-     ref_token_id, username, refresh_token, expires_at
+     ID,ref_token_id, username, refresh_token, expires_at
 )VALUES(
-    $1, $2, $3, $4
+    UUID(),?, ?, ?, ?
 )
 `
 
@@ -185,11 +438,12 @@ type InsertSessionParams struct {
 	RefTokenID   string
 	Username     string
 	RefreshToken string
-	ExpiresAt    pgtype.Timestamptz
+	ExpiresAt    time.Time
 }
 
+// ?, ?, ?, ?, ?, ?
 func (q *Queries) InsertSession(ctx context.Context, arg InsertSessionParams) error {
-	_, err := q.db.Exec(ctx, insertSession,
+	_, err := q.db.ExecContext(ctx, insertSession,
 		arg.RefTokenID,
 		arg.Username,
 		arg.RefreshToken,
@@ -198,31 +452,150 @@ func (q *Queries) InsertSession(ctx context.Context, arg InsertSessionParams) er
 	return err
 }
 
-const insertUser = `-- name: InsertUser :one
+const insertUser = `-- name: InsertUser :exec
+
 INSERT INTO users(
-     username, email, dob, gender, password
-)VALUES(
-    $1, $2, $3, $4, $5
-) RETURNING id
+     user_name, email,  gender, password, age, address
+)VALUES(?, ?, ?, ?, ?, ?)
 `
 
 type InsertUserParams struct {
-	Username string
+	UserName string
 	Email    string
-	Dob      pgtype.Date
-	Gender   Gender
+	Gender   UsersGender
 	Password string
+	Age      int32
+	Address  string
 }
 
-func (q *Queries) InsertUser(ctx context.Context, arg InsertUserParams) (uuid.UUID, error) {
-	row := q.db.QueryRow(ctx, insertUser,
-		arg.Username,
+// user management section ---
+func (q *Queries) InsertUser(ctx context.Context, arg InsertUserParams) error {
+	_, err := q.db.ExecContext(ctx, insertUser,
+		arg.UserName,
 		arg.Email,
-		arg.Dob,
 		arg.Gender,
 		arg.Password,
+		arg.Age,
+		arg.Address,
 	)
-	var id uuid.UUID
-	err := row.Scan(&id)
-	return id, err
+	return err
+}
+
+const selectAdsByID = `-- name: SelectAdsByID :one
+SELECT id, car_id, dealer_id, title, description, is_active, posting_date, year_production, color, mileage, price, status, location, bahan_bakar, trans_type, kapasitas_mesin, stok, thumbnailimage FROM car_advertisements WHERE id=?
+`
+
+// online ads (checkout page) section ---
+func (q *Queries) SelectAdsByID(ctx context.Context, id int32) (CarAdvertisement, error) {
+	row := q.db.QueryRowContext(ctx, selectAdsByID, id)
+	var i CarAdvertisement
+	err := row.Scan(
+		&i.ID,
+		&i.CarID,
+		&i.DealerID,
+		&i.Title,
+		&i.Description,
+		&i.IsActive,
+		&i.PostingDate,
+		&i.YearProduction,
+		&i.Color,
+		&i.Mileage,
+		&i.Price,
+		&i.Status,
+		&i.Location,
+		&i.BahanBakar,
+		&i.TransType,
+		&i.KapasitasMesin,
+		&i.Stok,
+		&i.Thumbnailimage,
+	)
+	return i, err
+}
+
+const showAdsByID = `-- name: ShowAdsByID :one
+SELECT ad.id, ad.car_id, ad.dealer_id, ad.title, ad.description, ad.is_active, ad.posting_date,
+     ad.year_production, ad.color, ad.mileage,
+     ad.price, ad.status, ad.location, ad.bahan_bakar, ad.trans_type, ad.kapasitas_mesin, ad.stok, ad.thumbnailImage, c.brand,
+      c.model, c.car_type,
+       d.dealer_name, d.no_telp, d.email, d.location   FROM car_advertisements  ad
+    INNER JOIN cars c ON c.id=ad.car_id
+    INNER JOIN dealers d ON ad.dealer_id=d.id
+    WHERE ad.id=  ?
+`
+
+type ShowAdsByIDRow struct {
+	ID             int32
+	CarID          int32
+	DealerID       int32
+	Title          string
+	Description    string
+	IsActive       bool
+	PostingDate    time.Time
+	YearProduction int32
+	Color          string
+	Mileage        int32
+	Price          int32
+	Status         NullCarAdvertisementsStatus
+	Location       string
+	BahanBakar     CarAdvertisementsBahanBakar
+	TransType      CarAdvertisementsTransType
+	KapasitasMesin CarAdvertisementsKapasitasMesin
+	Stok           int32
+	Thumbnailimage sql.NullString
+	Brand          string
+	Model          string
+	CarType        CarsCarType
+	DealerName     string
+	NoTelp         string
+	Email          string
+	Location_2     string
+}
+
+// carDeail section ---
+func (q *Queries) ShowAdsByID(ctx context.Context, id int32) (ShowAdsByIDRow, error) {
+	row := q.db.QueryRowContext(ctx, showAdsByID, id)
+	var i ShowAdsByIDRow
+	err := row.Scan(
+		&i.ID,
+		&i.CarID,
+		&i.DealerID,
+		&i.Title,
+		&i.Description,
+		&i.IsActive,
+		&i.PostingDate,
+		&i.YearProduction,
+		&i.Color,
+		&i.Mileage,
+		&i.Price,
+		&i.Status,
+		&i.Location,
+		&i.BahanBakar,
+		&i.TransType,
+		&i.KapasitasMesin,
+		&i.Stok,
+		&i.Thumbnailimage,
+		&i.Brand,
+		&i.Model,
+		&i.CarType,
+		&i.DealerName,
+		&i.NoTelp,
+		&i.Email,
+		&i.Location_2,
+	)
+	return i, err
+}
+
+const updateAds = `-- name: UpdateAds :exec
+UPDATE car_advertisements SET stok = stok-?
+   WHERE id= ?
+`
+
+type UpdateAdsParams struct {
+	Stok int32
+	ID   int32
+}
+
+func (q *Queries) UpdateAds(ctx context.Context, arg UpdateAdsParams) error {
+	_, err := q.db.ExecContext(ctx, updateAds, arg.Stok, arg.ID)
+	return err
 }

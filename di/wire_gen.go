@@ -16,13 +16,13 @@ import (
 
 // Injectors from wire.go:
 
-func InitUserService(pg *db.Postgres, cfg *config.Config) *service.UserService {
+func InitUserService(pg *db.Mysql, cfg *config.Config) *service.UserService {
 	userRepository := db.NewUserRepo(pg)
 	userService := service.NewUserService(userRepository)
 	return userService
 }
 
-func InitAuthService(pg *db.Postgres, cfg *config.Config) *service.AuthService {
+func InitAuthService(pg *db.Mysql, cfg *config.Config) *service.AuthService {
 	sessionRepository := db.NewSessionRepo(pg)
 	jwtMaker := jwt.NewJWTMaker(cfg)
 	userRepository := db.NewUserRepo(pg)

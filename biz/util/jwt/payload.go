@@ -3,9 +3,6 @@ package jwt
 import (
 	"errors"
 	"time"
-
-	gofrsUUID "github.com/gofrs/uuid"
-	"github.com/google/uuid"
 )
 
 var (
@@ -15,7 +12,7 @@ var (
 
 // Payload berisi payload data dari token
 type Payload struct {
-	ID        uuid.UUID `json:"id"`
+	ID        string    `json:"id"`
 	Username  string    `json:"username"`
 	IssuedAt  time.Time `json:"issued_at"`
 	ExpiredAt time.Time `json:"exp"`
@@ -27,10 +24,10 @@ func NewPayload(userID, username string, duration time.Duration) (*Payload, erro
 	// if err != nil {
 	// 	return nil, err
 	// }
-	userIDUUID, _ := gofrsUUID.FromString(userID)
+	// userIDUUID, _ := gofrsUUID.FromString(userID)
 
 	payload := &Payload{
-		ID:        uuid.UUID(userIDUUID),
+		ID:        userID,
 		Username:  username,
 		IssuedAt:  time.Now(),
 		ExpiredAt: time.Now().Add(duration),

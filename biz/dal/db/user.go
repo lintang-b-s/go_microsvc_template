@@ -6,36 +6,34 @@ import (
 	"lintang/go_hertz_template/biz/dal/db/queries"
 	"lintang/go_hertz_template/biz/domain"
 
-	"github.com/gofrs/uuid"
-	googleuuid "github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgtype"
 	"go.uber.org/zap"
 )
 
 type UserRepository struct {
-	db *Postgres
+	db *Mysql
 }
 
-func NewUserRepo(db *Postgres) *UserRepository {
+func NewUserRepo(db *Mysql) *UserRepository {
 	return &UserRepository{db}
 }
 
 func (r *UserRepository) Insert(ctx context.Context, u domain.User) error {
-	q := queries.New(r.db.Pool)
+	q := queries.New(r.db.Conn)
 
-	var gender queries.Gender
-	gender = queries.GenderFemale
+	var gender queries.UsersGender
+	gender = queries.UsersGenderFemale
 	if u.Gender == domain.Male {
-		gender = queries.GenderMale
+		gender = queries.UsersGenderMale
 	}
 
-	_, err := q.InsertUser(ctx, queries.InsertUserParams{
-		Username: u.Username,
+	err := q.InsertUser(ctx, queries.InsertUserParams{
+		UserName: u.Username,
 		Email:    u.Email,
-		Dob:      pgtype.Date{Valid: true, Time: u.Dob},
 		Gender:   gender,
 		Password: u.Password,
+		Age:      int32(u.Age),
+		Address:  u.Address,
 	})
 	if err != nil {
 		zap.L().Error("InsertUser (UserRepository)", zap.Error(err))
@@ -44,15 +42,10 @@ func (r *UserRepository) Insert(ctx context.Context, u domain.User) error {
 	return nil
 }
 
-func (r *UserRepository) Get(ctx context.Context, userID string) (domain.User, error) {
-	q := queries.New(r.db.Pool)
-	userIDUUID, err := uuid.FromString(userID)
-	if err != nil {
-		zap.L().Error("uuid.FromString (UserRepository)", zap.Error(err))
-		return domain.User{}, domain.WrapErrorf(err, domain.ErrInternalServerError, domain.MessageInternalServerError)
-	}
+func (r *UserRepository) Get(ctx context.Context, userID int32) (domain.User, error) {
+	q := queries.New(r.db.Conn)
 
-	u, err := q.GetUser(ctx, googleuuid.UUID(userIDUUID))
+	u, err := q.GetUser(ctx, userID)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			zap.L().Debug(fmt.Sprint("user with id  %s not exists", userID))
@@ -63,20 +56,19 @@ func (r *UserRepository) Get(ctx context.Context, userID string) (domain.User, e
 	}
 
 	d := domain.User{
-		ID:          u.ID.String(),
-		Username:    u.Username,
-		Email:       u.Email,
-		Dob:         u.Dob.Time,
-		Gender:      domain.Gender(u.Gender),
-		CreatedTime: u.CreatedTime.Time,
-		UpdatedTime: u.UpdatedTime.Time,
+		ID:       uint64(u.ID),
+		Username: u.UserName,
+		Email:    u.Email,
+		Gender:   domain.Gender(u.Gender),
+		Age:      uint64(u.Age),
+		Address:  u.Address,
 	}
 	return d, nil
 }
 
 func (r *UserRepository) GetByEmail(ctx context.Context, email string) (domain.User, error) {
 
-	q := queries.New(r.db.Pool)
+	q := queries.New(r.db.Conn)
 
 	u, err := q.GetUserByEmail(ctx, email)
 	if err != nil {
@@ -89,14 +81,13 @@ func (r *UserRepository) GetByEmail(ctx context.Context, email string) (domain.U
 	}
 
 	d := domain.User{
-		ID: u.ID.String(),
-		Username:    u.Username,
-		Email:       u.Email,
-		Dob:         u.Dob.Time,
-		Gender:      domain.Gender(u.Gender),
-		CreatedTime: u.CreatedTime.Time,
-		UpdatedTime: u.UpdatedTime.Time,
+		ID:       uint64(u.ID),
+		Username: u.UserName,
+		Email:    u.Email,
+		Gender:   domain.Gender(u.Gender),
 		Password: u.Password,
+		Age:      uint64(u.Age),
+		Address:  u.Address,
 	}
 	return d, nil
 }
